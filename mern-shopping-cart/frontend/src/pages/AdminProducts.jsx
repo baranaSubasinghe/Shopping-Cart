@@ -1,13 +1,91 @@
-import { useEffect, useState } from 'react';
-import API from '../api/axios';
-const blank = { name:'', description:'', price:'', image:'', category:'', stock:'' };
-export default function AdminProducts() {
-  const [products, setProducts] = useState([]), [categories, setCategories] = useState([]), [form, setForm] = useState(blank), [editId, setEditId] = useState(null);
-  const load = async () => { setProducts((await API.get('/products')).data); setCategories((await API.get('/categories')).data); };
-  useEffect(() => { load(); }, []);
-  const change = e => setForm({ ...form, [e.target.name]: e.target.value });
-  const submit = async e => { e.preventDefault(); const body = { ...form, price:Number(form.price), stock:Number(form.stock) }; editId ? await API.put(`/products/${editId}`, body) : await API.post('/products', body); setForm(blank); setEditId(null); load(); };
-  const edit = p => { setEditId(p._id); setForm({ name:p.name, description:p.description, price:p.price, image:p.image, category:p.category?._id, stock:p.stock }); };
-  const del = async id => { if (confirm('Delete product?')) { await API.delete(`/products/${id}`); load(); } };
-  return <div><h2>Admin Product Management</h2><form className="admin-form" onSubmit={submit}><input name="name" value={form.name} onChange={change} placeholder="Product name" required /><input name="price" value={form.price} onChange={change} placeholder="Price" type="number" required /><input name="stock" value={form.stock} onChange={change} placeholder="Stock" type="number" required /><input name="image" value={form.image} onChange={change} placeholder="Image URL" required /><select name="category" value={form.category} onChange={change} required><option value="">Select Category</option>{categories.map(c=><option value={c._id} key={c._id}>{c.name}</option>)}</select><textarea name="description" value={form.description} onChange={change} placeholder="Description" required /><button>{editId ? 'Update' : 'Add'} Product</button></form><div>{products.map(p=><div className="admin-row" key={p._id}><span>{p.name} - Rs. {p.price}</span><button onClick={()=>edit(p)}>Edit</button><button onClick={()=>del(p._id)}>Delete</button></div>)}</div></div>;
-}
+import { useEffect, useState } from "react";
+import API from "../api/axios";
+import { useAuth } from "../context/AuthContext";
+
+const emptyForm = { name: "", description: "", price: "", stock: "", image: "", category: "" };
+
+const AdminProducts = () => {
+  const { user } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+
+  const loadData = async () => {
+    const [p, c] = await Promise.all([API.get("/products"), API.get("/categories")]);
+    setProducts(p.data);
+    setCategories(c.data);
+    if (!form.category && c.data[0]) setForm((prev) => ({ ...prev, category: c.data[0]._id }));
+  };
+
+  useEffect(() => { loadData().catch(() => alert("Load failed")); }, []);
+
+  if (!user || user.role !== "admin") {
+    return <main className="container empty"><h2>Admin access only</h2></main>;
+  }
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = { ...form, price: Number(form.price), stock: Number(form.stock) };
+    try {
+      if (editingId) await API.put(`/products/${editingId}`, payload);
+      else await API.post("/products", payload);
+      setForm(emptyForm);
+      setEditingId(null);
+      await loadData();
+    } catch (error) {
+      alert(error.response?.data?.message || "Save failed");
+    }
+  };
+
+  const editProduct = (product) => {
+    setEditingId(product._id);
+    setForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      image: product.image,
+      category: product.category?._id,
+    });
+  };
+
+  const deleteProduct = async (id) => {
+    if (!confirm("Delete product?")) return;
+    await API.delete(`/products/${id}`);
+    await loadData();
+  };
+
+  return (
+    <main className="container">
+      <h1>Admin Product Management</h1>
+      <form className="admin-form" onSubmit={handleSubmit}>
+        <input name="name" value={form.name} onChange={handleChange} placeholder="Product name" required />
+        <input name="price" value={form.price} onChange={handleChange} type="number" min="0" placeholder="Price" required />
+        <input name="stock" value={form.stock} onChange={handleChange} type="number" min="0" placeholder="Stock" required />
+        <input name="image" value={form.image} onChange={handleChange} placeholder="Image URL" required />
+        <select name="category" value={form.category} onChange={handleChange} required>
+          {categories.map((cat) => <option key={cat._id} value={cat._id}>{cat.name}</option>)}
+        </select>
+        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" required />
+        <button type="submit">{editingId ? "Update Product" : "Add Product"}</button>
+        {editingId && <button type="button" className="outline" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancel</button>}
+      </form>
+
+      <div className="admin-list">
+        {products.map((product) => (
+          <div className="admin-row" key={product._id}>
+            <img src={product.image} alt={product.name} />
+            <div><strong>{product.name}</strong><p>Rs. {product.price} | Stock {product.stock}</p></div>
+            <button onClick={() => editProduct(product)}>Edit</button>
+            <button className="danger" onClick={() => deleteProduct(product._id)}>Delete</button>
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+};
+
+export default AdminProducts;

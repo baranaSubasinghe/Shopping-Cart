@@ -1,8 +1,29 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useCart } from '../../context/CartContext';
-export default function Navbar() {
-  const { user, logout } = useAuth(); const { items } = useCart();
-  const count = items.reduce((s, i) => s + i.quantity, 0);
-  return <nav className="nav"><Link className="logo" to="/">FreshCart</Link><div><Link to="/">Products</Link><Link to="/cart">Cart ({count})</Link>{user?.role === 'admin' && <Link to="/admin/products">Admin</Link>}{user ? <button onClick={logout}>Logout</button> : <><Link to="/login">Login</Link><Link to="/register">Register</Link></>}</div></nav>;
-}
+import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
+
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const { cart } = useCart();
+
+  return (
+    <header className="navbar">
+      <Link to="/" className="brand">FreshCart</Link>
+      <nav>
+        <NavLink to="/">Home</NavLink>
+        <NavLink to="/cart">Cart ({cart.totalItems || 0})</NavLink>
+        {user?.role === "admin" && <NavLink to="/admin/products">Admin</NavLink>}
+        {!user ? (
+          <>
+            <NavLink to="/login">Login</NavLink>
+            <NavLink to="/register">Register</NavLink>
+          </>
+        ) : (
+          <button onClick={logout} className="logout">Logout</button>
+        )}
+      </nav>
+    </header>
+  );
+};
+
+export default Navbar;

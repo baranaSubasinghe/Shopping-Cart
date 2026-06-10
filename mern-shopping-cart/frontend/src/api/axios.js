@@ -1,8 +1,16 @@
-import axios from 'axios';
-const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api' });
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
+});
+
 API.interceptors.request.use((config) => {
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  if (user?.token) config.headers.Authorization = `Bearer ${user.token}`;
+  const userInfo = localStorage.getItem("userInfo");
+  if (userInfo) {
+    const user = JSON.parse(userInfo);
+    if (user?.token) config.headers.Authorization = `Bearer ${user.token}`;
+  }
   return config;
 });
+
 export default API;
