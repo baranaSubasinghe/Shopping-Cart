@@ -1,0 +1,1 @@
+{"scripts":{"dev":"nodemon server.js","start":"node server.js","seed":"node seed/seedData.js"},"dependencies":{"bcryptjs":"latest","cors":"latest","dotenv":"latest","express":"latest","jsonwebtoken":"latest","mongoose":"latest","morgan":"latest"},"devDependencies":{"nodemon":"latest"},"type":"module"}
