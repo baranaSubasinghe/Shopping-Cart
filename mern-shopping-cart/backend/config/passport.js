@@ -22,12 +22,13 @@ const createOrFindOAuthUser = async ({ name, email, provider, providerId }) => {
 };
 
 export const setupPassport = () => {
+  const serverUrl = process.env.SERVER_URL || "http://localhost:5001";
+
   console.log("Checking OAuth ENV values...");
   console.log("GOOGLE_CLIENT_ID exists:", Boolean(process.env.GOOGLE_CLIENT_ID));
-  console.log(
-    "GOOGLE_CLIENT_SECRET exists:",
-    Boolean(process.env.GOOGLE_CLIENT_SECRET)
-  );
+  console.log("GOOGLE_CLIENT_SECRET exists:", Boolean(process.env.GOOGLE_CLIENT_SECRET));
+  console.log("FACEBOOK_APP_ID exists:", Boolean(process.env.FACEBOOK_APP_ID));
+  console.log("FACEBOOK_APP_SECRET exists:", Boolean(process.env.FACEBOOK_APP_SECRET));
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(
@@ -36,7 +37,7 @@ export const setupPassport = () => {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: "http://localhost:5001/api/auth/google/callback",
+          callbackURL: `${serverUrl}/api/auth/google/callback`,
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
@@ -75,7 +76,7 @@ export const setupPassport = () => {
         {
           clientID: process.env.FACEBOOK_APP_ID,
           clientSecret: process.env.FACEBOOK_APP_SECRET,
-          callbackURL: "http://localhost:5001/api/auth/facebook/callback",
+          callbackURL: `${serverUrl}/api/auth/facebook/callback`,
           profileFields: ["id", "displayName", "emails"],
         },
         async (accessToken, refreshToken, profile, done) => {

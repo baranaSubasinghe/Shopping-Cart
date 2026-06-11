@@ -308,11 +308,13 @@ export const passkeyLoginVerify = async (req, res, next) => {
 export const oauthSuccess = (req, res) => {
   const token = generateToken(req.user._id);
 
-  res.redirect(
-    `${process.env.CLIENT_URL}/oauth-success?token=${token}&name=${encodeURIComponent(
-      req.user.name
-    )}&email=${encodeURIComponent(req.user.email)}&role=${req.user.role}&id=${
-      req.user._id
-    }`
-  );
+  const params = new URLSearchParams({
+    token,
+    name: req.user.name || "",
+    email: req.user.email || "",
+    role: req.user.role || "user",
+    id: req.user._id.toString(),
+  });
+
+  res.redirect(`${process.env.CLIENT_URL}/oauth-success?${params.toString()}`);
 };

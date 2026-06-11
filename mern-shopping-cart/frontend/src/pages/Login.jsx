@@ -11,6 +11,10 @@ export default function Login() {
   const { login, saveUser } = useAuth();
   const navigate = useNavigate();
 
+  const apiRoot = (
+    import.meta.env.VITE_API_URL || "http://localhost:5001/api"
+  ).replace(/\/api\/?$/, "");
+
   const submit = async (e) => {
     e.preventDefault();
 
@@ -75,14 +79,11 @@ export default function Login() {
           Login with Passkey
         </button>
 
-        <a className="outline linkbtn" href="http://localhost:5001/api/auth/google">
+        <a className="outline linkbtn" href={`${apiRoot}/api/auth/google`}>
           Login with Google
         </a>
 
-        <a
-          className="outline linkbtn"
-          href="http://localhost:5001/api/auth/facebook"
-        >
+        <a className="outline linkbtn" href={`${apiRoot}/api/auth/facebook`}>
           Login with Facebook
         </a>
 
