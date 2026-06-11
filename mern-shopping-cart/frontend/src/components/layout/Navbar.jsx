@@ -8,18 +8,38 @@ const Navbar = () => {
 
   return (
     <header className="navbar">
-      <Link to="/" className="brand">FreshCart</Link>
-      <nav>
+      <Link to="/" className="brand">
+        <span className="brand-icon">🛒</span>
+        <span>FreshCart</span>
+      </Link>
+
+      <nav className="nav-links">
         <NavLink to="/">Home</NavLink>
-        <NavLink to="/cart">Cart ({cart.totalItems || 0})</NavLink>
-        {user?.role === "admin" && <NavLink to="/admin/products">Admin</NavLink>}
+        <NavLink to="/cart" className="cart-link">
+          Cart <span>{cart.totalItems || 0}</span>
+        </NavLink>
+
+        {user?.role === "admin" && (
+          <>
+            <NavLink to="/admin/products">Products</NavLink>
+            <NavLink to="/admin/categories">Categories</NavLink>
+          </>
+        )}
+
         {!user ? (
           <>
             <NavLink to="/login">Login</NavLink>
-            <NavLink to="/register">Register</NavLink>
+            <Link to="/register" className="nav-cta">
+              Register
+            </Link>
           </>
         ) : (
-          <button onClick={logout} className="logout">Logout</button>
+          <div className="user-area">
+            <span className="user-chip">{user.name?.charAt(0) || "U"}</span>
+            <button onClick={logout} className="logout">
+              Logout
+            </button>
+          </div>
         )}
       </nav>
     </header>

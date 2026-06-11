@@ -56,41 +56,61 @@ export default function Login() {
   };
 
   return (
-    <main className="form-page">
-      <form onSubmit={submit} className="form">
-        <h2>Login</h2>
+    <main className="auth-page">
+      <section className="auth-shell">
+        <div className="auth-visual">
+          <span className="eyebrow">Welcome back</span>
+          <h1>Login to continue shopping fresh products.</h1>
+          <p>
+            Access your cart, checkout summary, and admin tools from one secure
+            account.
+          </p>
+        </div>
 
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
+        <form onSubmit={submit} className="auth-card">
+          <h2>Login</h2>
+          <p className="auth-subtitle">Use your account to continue.</p>
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-        />
+          <label>
+            Email Address
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+            />
+          </label>
 
-        <button type="submit">Login</button>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+            />
+          </label>
 
-        <button type="button" className="outline" onClick={passkeyLogin}>
-          Login with Passkey
-        </button>
+          <button type="submit">Login</button>
 
-        <a className="outline linkbtn" href={`${apiRoot}/api/auth/google`}>
-          Login with Google
-        </a>
+          <button type="button" className="outline" onClick={passkeyLogin}>
+            Login with Passkey
+          </button>
 
-        <a className="outline linkbtn" href={`${apiRoot}/api/auth/facebook`}>
-          Login with Facebook
-        </a>
+          <div className="social-actions">
+            <a className="outline linkbtn" href={`${apiRoot}/api/auth/google`}>
+              Continue with Google
+            </a>
 
-        <p>
-          No account? <Link to="/register">Register</Link>
-        </p>
-      </form>
+            <a className="outline linkbtn" href={`${apiRoot}/api/auth/facebook`}>
+              Continue with Facebook
+            </a>
+          </div>
+
+          <p>
+            No account? <Link to="/register">Create one</Link>
+          </p>
+        </form>
+      </section>
     </main>
   );
 }

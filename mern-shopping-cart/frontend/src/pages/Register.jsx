@@ -32,10 +32,7 @@ export default function Register() {
 
       const { data: options } = await API.post(
         "/auth/passkey/register-options",
-        {
-          name,
-          email,
-        }
+        { name, email }
       );
 
       const registrationResponse = await startRegistration({
@@ -68,39 +65,60 @@ export default function Register() {
   };
 
   return (
-    <main className="form-page">
-      <form onSubmit={submit} className="form">
-        <h2>Register</h2>
+    <main className="auth-page">
+      <section className="auth-shell">
+        <div className="auth-visual">
+          <span className="eyebrow">Join FreshCart</span>
+          <h1>Create your account and start building your basket.</h1>
+          <p>
+            Register with email or passkey and enjoy a smooth shopping
+            experience.
+          </p>
+        </div>
 
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
-        />
+        <form onSubmit={submit} className="auth-card">
+          <h2>Create Account</h2>
+          <p className="auth-subtitle">Fill your details to get started.</p>
 
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
+          <label>
+            Full Name
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter name"
+            />
+          </label>
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-        />
+          <label>
+            Email Address
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+            />
+          </label>
 
-        <button type="submit">Create Account</button>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+            />
+          </label>
 
-        <button type="button" className="outline" onClick={passkeyRegister}>
-          Register with Passkey
-        </button>
+          <button type="submit">Create Account</button>
 
-        <p>
-          Have account? <Link to="/login">Login</Link>
-        </p>
-      </form>
+          <button type="button" className="outline" onClick={passkeyRegister}>
+            Register with Passkey
+          </button>
+
+          <p>
+            Have account? <Link to="/login">Login</Link>
+          </p>
+        </form>
+      </section>
     </main>
   );
 }
