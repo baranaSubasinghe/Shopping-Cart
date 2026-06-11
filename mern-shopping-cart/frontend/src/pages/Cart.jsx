@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-
+import { useNavigate } from "react-router-dom";
 const Cart = () => {
   const { user } = useAuth();
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const navigate = useNavigate();
 
   if (!user) {
     return (
@@ -55,7 +56,9 @@ const Cart = () => {
           <h2>Order Summary</h2>
           <p>Total Items: {cart.totalItems}</p>
           <h3>Total: Rs. {cart.totalPrice?.toFixed(2)}</h3>
-          <button onClick={() => alert("Checkout is future scope")}>Checkout</button>
+          <button onClick={() => navigate("/checkout")}>
+  Checkout
+</button>
           <button className="danger outline" onClick={clearCart}>Clear Cart</button>
         </aside>
       </section>
