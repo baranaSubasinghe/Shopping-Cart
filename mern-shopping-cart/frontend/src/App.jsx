@@ -9,6 +9,7 @@ import AdminProducts from "./pages/AdminProducts";
 import AdminCategories from "./pages/AdminCategories";
 import Checkout from "./pages/Checkout";
 import OAuthSuccess from "./pages/OAuthSuccess";
+import Footer from "./components/layout/Footer";
 
 const App = () => {
   return (
@@ -27,7 +28,9 @@ const App = () => {
         <Route path="/admin/products" element={<AdminProducts />} />
         <Route path="/admin/categories" element={<AdminCategories />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
+    
   );
 };
 
