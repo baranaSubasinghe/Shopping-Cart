@@ -4,18 +4,27 @@ import { Strategy as FacebookStrategy } from "passport-facebook";
 import User from "../models/User.js";
 
 const createOrFindOAuthUser = async ({ name, email, provider, providerId }) => {
-  let user = await User.findOne({ email: email.toLowerCase() });
+  const finalEmail =
+    email && email.trim() !== ""
+      ? email.toLowerCase()
+      : `${providerId}@${provider}.local`;
+
+  let user = await User.findOne({ email: finalEmail });
 
   if (!user) {
     user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: name || `${provider} User`,
+      email: finalEmail,
       provider,
       providerId,
       password: undefined,
       role: "user",
       passkeys: [],
     });
+  } else {
+    user.provider = user.provider || provider;
+    user.providerId = user.providerId || providerId;
+    await user.save();
   }
 
   return user;
@@ -23,18 +32,6 @@ const createOrFindOAuthUser = async ({ name, email, provider, providerId }) => {
 
 export const setupPassport = () => {
   const serverUrl = process.env.SERVER_URL || "http://localhost:5001";
-
-  console.log("Checking OAuth ENV values...");
-  console.log("GOOGLE_CLIENT_ID exists:", Boolean(process.env.GOOGLE_CLIENT_ID));
-  console.log(
-    "GOOGLE_CLIENT_SECRET exists:",
-    Boolean(process.env.GOOGLE_CLIENT_SECRET)
-  );
-  console.log("FACEBOOK_APP_ID exists:", Boolean(process.env.FACEBOOK_APP_ID));
-  console.log(
-    "FACEBOOK_APP_SECRET exists:",
-    Boolean(process.env.FACEBOOK_APP_SECRET)
-  );
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(
@@ -48,12 +45,6 @@ export const setupPassport = () => {
         async (accessToken, refreshToken, profile, done) => {
           try {
             const email = profile.emails?.[0]?.value;
-
-            if (!email) {
-              return done(null, false, {
-                message: "No email received from Google",
-              });
-            }
 
             const user = await createOrFindOAuthUser({
               name: profile.displayName || "Google User",
@@ -83,16 +74,13 @@ export const setupPassport = () => {
           clientID: process.env.FACEBOOK_APP_ID,
           clientSecret: process.env.FACEBOOK_APP_SECRET,
           callbackURL: `${serverUrl}/api/auth/facebook/callback`,
-          profileFields: ["id", "displayName", "emails"],
+          profileFields: ["id", "displayName"],
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
-            const email =
-              profile.emails?.[0]?.value || `${profile.id}@facebook.local`;
-
             const user = await createOrFindOAuthUser({
               name: profile.displayName || "Facebook User",
-              email,
+              email: `${profile.id}@facebook.local`,
               provider: "facebook",
               providerId: profile.id,
             });

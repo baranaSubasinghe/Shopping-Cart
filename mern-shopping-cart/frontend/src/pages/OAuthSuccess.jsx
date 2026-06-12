@@ -36,17 +36,15 @@ export default function OAuthSuccess() {
       saveUser(userData);
     }
 
-    setTimeout(() => {
-      window.location.replace("/");
-    }, 800);
+    window.location.replace("/");
   }, [searchParams, saveUser]);
 
   return (
-    <main className="form-page">
-      <div className="form">
+    <main className="auth-page">
+      <section className="auth-card">
         <h2>Login successful</h2>
         <p>Redirecting to home page...</p>
-      </div>
+      </section>
     </main>
   );
 }
