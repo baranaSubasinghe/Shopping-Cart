@@ -49,13 +49,25 @@ router.get(
   })
 );
 
-router.get(
-  "/facebook/callback",
-  passport.authenticate("facebook", {
-    failureRedirect: `${process.env.CLIENT_URL || "http://localhost:5173"}/login`,
-    session: false,
-  }),
-  oauthSuccess
-);
+router.get("/facebook/callback", (req, res, next) => {
+  passport.authenticate("facebook", { session: false }, (err, user, info) => {
+    if (err) {
+      console.error("Facebook OAuth Error:", err.message);
+
+      return res.redirect(
+        `${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=facebook_login_failed`
+      );
+    }
+
+    if (!user) {
+      return res.redirect(
+        `${process.env.CLIENT_URL || "http://localhost:5173"}/login?error=facebook_login_cancelled`
+      );
+    }
+
+    req.user = user;
+    return oauthSuccess(req, res);
+  })(req, res, next);
+});
 
 export default router;
