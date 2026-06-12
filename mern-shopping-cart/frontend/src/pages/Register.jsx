@@ -40,6 +40,7 @@ export default function Register() {
       });
 
       const { data } = await API.post("/auth/passkey/register-verify", {
+        email,
         credential: registrationResponse,
       });
 

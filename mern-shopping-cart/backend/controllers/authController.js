@@ -61,6 +61,12 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (user && (await user.matchPassword(password))) {
@@ -107,20 +113,18 @@ export const passkeyRegisterOptions = async (req, res, next) => {
       userName: user.email,
       userDisplayName: user.name,
       attestationType: "none",
-
       excludeCredentials: user.passkeys.map((passkey) => ({
         id: passkey.credentialID,
         transports: passkey.transports || [],
       })),
-
       authenticatorSelection: {
         residentKey: "preferred",
         userVerification: "preferred",
       },
     });
 
-    req.session.currentChallenge = options.challenge;
-    req.session.passkeyUserId = user._id.toString();
+    user.currentChallenge = options.challenge;
+    await user.save();
 
     res.json(options);
   } catch (error) {
@@ -131,7 +135,12 @@ export const passkeyRegisterOptions = async (req, res, next) => {
 // PASSKEY REGISTER VERIFY
 export const passkeyRegisterVerify = async (req, res, next) => {
   try {
+    const { email } = req.body;
     const credential = req.body.credential || req.body.response || req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     if (!credential || !credential.id || !credential.response) {
       return res.status(400).json({
@@ -139,24 +148,17 @@ export const passkeyRegisterVerify = async (req, res, next) => {
       });
     }
 
-    const userId = req.session.passkeyUserId;
-    const expectedChallenge = req.session.currentChallenge;
+    const user = await User.findOne({ email: email.toLowerCase() });
 
-    if (!userId || !expectedChallenge) {
+    if (!user || !user.currentChallenge) {
       return res.status(400).json({
-        message: "Passkey session expired. Try again.",
+        message: "Passkey challenge expired. Try again.",
       });
-    }
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
     }
 
     const verification = await verifyRegistrationResponse({
       response: credential,
-      expectedChallenge,
+      expectedChallenge: user.currentChallenge,
       expectedOrigin: origin(),
       expectedRPID: rpID(),
     });
@@ -186,10 +188,9 @@ export const passkeyRegisterVerify = async (req, res, next) => {
       });
     }
 
+    user.provider = user.provider || "passkey";
+    user.currentChallenge = undefined;
     await user.save();
-
-    req.session.currentChallenge = null;
-    req.session.passkeyUserId = null;
 
     res.status(201).json(publicUser(user));
   } catch (error) {
@@ -223,8 +224,8 @@ export const passkeyLoginOptions = async (req, res, next) => {
       userVerification: "preferred",
     });
 
-    req.session.currentChallenge = options.challenge;
-    req.session.passkeyLoginUserId = user._id.toString();
+    user.currentChallenge = options.challenge;
+    await user.save();
 
     res.json(options);
   } catch (error) {
@@ -248,19 +249,12 @@ export const passkeyLoginVerify = async (req, res, next) => {
       });
     }
 
-    const expectedChallenge = req.session.currentChallenge;
-    const sessionUserId = req.session.passkeyLoginUserId;
-
-    if (!expectedChallenge || !sessionUserId) {
-      return res.status(400).json({
-        message: "Passkey session expired. Try again.",
-      });
-    }
-
     const user = await User.findOne({ email: email.toLowerCase() });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!user || !user.currentChallenge) {
+      return res.status(400).json({
+        message: "Passkey challenge expired. Try again.",
+      });
     }
 
     const dbPasskey = user.passkeys.find(
@@ -273,10 +267,9 @@ export const passkeyLoginVerify = async (req, res, next) => {
 
     const verification = await verifyAuthenticationResponse({
       response: credential,
-      expectedChallenge,
+      expectedChallenge: user.currentChallenge,
       expectedOrigin: origin(),
       expectedRPID: rpID(),
-
       credential: {
         id: dbPasskey.credentialID,
         publicKey: Buffer.from(dbPasskey.credentialPublicKey, "base64url"),
@@ -292,10 +285,7 @@ export const passkeyLoginVerify = async (req, res, next) => {
     }
 
     dbPasskey.counter = verification.authenticationInfo.newCounter;
-
-    req.session.currentChallenge = null;
-    req.session.passkeyLoginUserId = null;
-
+    user.currentChallenge = undefined;
     await user.save();
 
     res.json(publicUser(user));
@@ -306,6 +296,7 @@ export const passkeyLoginVerify = async (req, res, next) => {
 
 // GOOGLE / FACEBOOK OAUTH SUCCESS
 export const oauthSuccess = (req, res) => {
+  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
   const token = generateToken(req.user._id);
 
   const params = new URLSearchParams({
@@ -316,5 +307,5 @@ export const oauthSuccess = (req, res) => {
     id: req.user._id.toString(),
   });
 
-  res.redirect(`${process.env.CLIENT_URL}/oauth-success?${params.toString()}`);
+  res.redirect(`${clientUrl}/oauth-success?${params.toString()}`);
 };

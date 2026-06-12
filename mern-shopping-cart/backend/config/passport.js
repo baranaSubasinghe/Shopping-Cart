@@ -26,9 +26,15 @@ export const setupPassport = () => {
 
   console.log("Checking OAuth ENV values...");
   console.log("GOOGLE_CLIENT_ID exists:", Boolean(process.env.GOOGLE_CLIENT_ID));
-  console.log("GOOGLE_CLIENT_SECRET exists:", Boolean(process.env.GOOGLE_CLIENT_SECRET));
+  console.log(
+    "GOOGLE_CLIENT_SECRET exists:",
+    Boolean(process.env.GOOGLE_CLIENT_SECRET)
+  );
   console.log("FACEBOOK_APP_ID exists:", Boolean(process.env.FACEBOOK_APP_ID));
-  console.log("FACEBOOK_APP_SECRET exists:", Boolean(process.env.FACEBOOK_APP_SECRET));
+  console.log(
+    "FACEBOOK_APP_SECRET exists:",
+    Boolean(process.env.FACEBOOK_APP_SECRET)
+  );
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(

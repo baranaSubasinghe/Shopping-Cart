@@ -51,9 +51,22 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
 
+    provider: {
+      type: String,
+      default: "local",
+    },
+
+    providerId: {
+      type: String,
+    },
+
     passkeys: {
       type: [passkeySchema],
       default: [],
+    },
+
+    currentChallenge: {
+      type: String,
     },
   },
   {
